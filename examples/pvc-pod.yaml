@@ -1,0 +1,44 @@
+# Create a claim from the nfs storage class
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs
+  resources:
+    requests:
+      storage: 8Gi
+
+# Create a pod using a volume from the above pvc
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nfs-pod
+  labels:
+    env: test
+spec:
+  containers:
+  - name: test-pod
+    image: nuriel77/nuritools
+    imagePullPolicy: IfNotPresent
+    command: [ "/bin/sh", "-c", "--" ]
+    args: [ "while true; do sleep 999999; done;" ]
+    # Mount the volume to this path
+    volumeMounts:
+    - mountPath: /data/nfs
+      name: nfs-volume
+#  nodeSelector:
+#    "kubernetes.io/hostname": ip-10-7-101-77.us-west-2.compute.internal
+#  tolerations:
+#  - effect: NoSchedule
+#    key: reserved
+#    operator: Equal
+#    value: cassandra-core
+  volumes:
+  - name: nfs-volume
+    persistentVolumeClaim:
+      claimName: nfs-claim
